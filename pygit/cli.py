@@ -1,4 +1,5 @@
 import argparse
+from . import pygit_init
 from pathlib import Path
 
 def main():
@@ -38,19 +39,10 @@ def main():
     #PARSER FOR INIT COMMAND
     init_parser = subparsers.add_parser("init", help="Initialize a new repository in the specified directory [Default: pwd]")
     init_parser.add_argument("directory", nargs="?", type=Path, default=Path("."))
-    init_parser.set_defaults(func=init)
+    init_parser.set_defaults(func=pygit_init.init)
 
     args = parser.parse_args()
     args.func(args)
-
-def init(args):
-    """Initialize a new repository in the specified directory."""
-    dir_path = args.directory/".pygit"
-    if dir_path.exists():
-        print(f"Repository already exists at {dir_path.resolve()}")
-        return
-    dir_path.mkdir(parents=True, exist_ok=True)
-    print(f"Initialized PyGit repository at {dir_path.resolve()}")
 
 def status(args):
     """Show the status of the repository."""
