@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygit"
+version = "1.0.0"
+description = "My own VCS tool TwT!"
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+pygit = "pygit.cli:main"
+
+[tool.setuptools]
+packages = ["pygit"]
