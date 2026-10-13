@@ -1,6 +1,7 @@
 import argparse
 import sys
 from . import init
+from . import status
 from . import errors
 from pathlib import Path
 
@@ -19,7 +20,7 @@ def main():
 
     #PARSER FOR STATUS COMMAND
     status_parser = subparsers.add_parser("status", help="Show the status of the repository")
-    status_parser.set_defaults(func=status)
+    status_parser.set_defaults(func=status.status)
 
     #PARSER FOR ADD COMMAND
     add_parser = subparsers.add_parser("add", help="Add files to the staging area")
@@ -53,10 +54,6 @@ def main():
             file=sys.stderr
         )
         return exc.code
-
-def status(args):
-    """Show the status of the repository."""
-    pass
 
 def add(args):
     """Add files to the staging area."""

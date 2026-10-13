@@ -799,5 +799,3 @@ The final repository contains one branch, main at C4; four reachable commits; se
 - [git-restore — Restoring tracked content](https://git-scm.com/docs/git-restore)
 - [git-merge — Ancestry, fast-forwards, and conflicts](https://git-scm.com/docs/git-merge)
 - [git-fsck — Object and reference integrity](https://git-scm.com/docs/git-fsck)
-
-
