@@ -1,5 +1,7 @@
 import argparse
-from . import pygit_init
+import sys
+from . import init
+from . import errors
 from pathlib import Path
 
 def main():
@@ -39,10 +41,18 @@ def main():
     #PARSER FOR INIT COMMAND
     init_parser = subparsers.add_parser("init", help="Initialize a new repository in the specified directory [Default: pwd]")
     init_parser.add_argument("directory", nargs="?", type=Path, default=Path("."))
-    init_parser.set_defaults(func=pygit_init.init)
+    init_parser.set_defaults(func=init.init)
 
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+
+    except errors.PyGitError as exc:
+        print(
+            f"!{exc.code} ({exc.error}): {exc}",
+            file=sys.stderr
+        )
+        return exc.code
 
 def status(args):
     """Show the status of the repository."""
