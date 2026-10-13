@@ -5,7 +5,7 @@ import zlib
 
 OBJECT_TYPES = ["blob", "tree", "commit"]
 
-def build_payload(object_type: str, content: bytes) -> bytes:
+def build_envelope(object_type: str, content: bytes) -> bytes:
     """Build the uncompressed representation for an object."""
     if object_type not in OBJECT_TYPES:
         raise errors.PyGitError(2, "E_INVALID_OBJECT_TYPE", f"Invalid object type: {object_type}")
@@ -22,7 +22,7 @@ def object_path(pygit_dir: Path, oid: str) -> Path:
 
 def write_object(pygit_dir: Path, object_type: str, content: bytes) -> str:
     """Store an immutable object in the object database."""
-    obj_envelope = build_payload(object_type, content)
+    obj_envelope = build_envelope(object_type, content)
     oid = generate_oid(obj_envelope)
     obj_path = object_path(pygit_dir, oid)
     compressed_obj = zlib.compress(obj_envelope, level=6)
@@ -48,9 +48,12 @@ def read_object(pygit_dir: Path, oid: str) -> tuple[str, bytes]:
         with open(obj_path, "rb") as obj_file:
             compressed_obj = obj_file.read()
     except Exception as e:
-        raise errors.PyGitError(4, "E_READ_OBJECT", f"Failed to read object: {oid}")
+        raise errors.PyGitError(4, "E_READ_OBJECT", f"Failed to read object: {oid} due to {e}")
     
-    obj = zlib.decompress(compressed_obj)
+    try:
+        obj = zlib.decompress(compressed_obj)
+    except Exception as e:
+        raise errors.PyGitError(5, "E_CORRUPT_OBJECT", f"Failed to decompress object: {oid}")
     header, separator, payload = obj.partition(b"\0")
     if separator != b"\x00":
         raise errors.PyGitError(5, "E_CORRUPT_OBJECT",f"Missing NUL separator: {oid}")

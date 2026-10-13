@@ -3,6 +3,7 @@ import sys
 from . import init
 from . import status
 from . import errors
+from . import pygit_add
 from pathlib import Path
 
 def main():
@@ -25,7 +26,7 @@ def main():
     #PARSER FOR ADD COMMAND
     add_parser = subparsers.add_parser("add", help="Add files to the staging area")
     add_parser.add_argument("paths", nargs="+")
-    add_parser.set_defaults(func=add)
+    add_parser.set_defaults(func=pygit_add.add)
 
     #PARSER FOR UNSTAGE COMMAND
     unstage_parser = subparsers.add_parser("unstage", help="Unstage files from the staging area")
