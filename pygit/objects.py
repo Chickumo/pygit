@@ -2,6 +2,7 @@ from pathlib import Path
 from . import errors
 import hashlib
 import zlib
+import json
 
 OBJECT_TYPES = ["blob", "tree", "commit"]
 
@@ -78,3 +79,69 @@ def read_blob(pygit_dir: Path, oid: str) -> bytes:
     if blob_type != "blob":
         raise errors.PyGitError(2, "E_INVALID_OBJECT_TYPE", f"Expected blob, found {blob_type}")
     return blob_content
+
+def _encode_json(data: dict) -> bytes:
+    """Canonical JSON: deterministic keys, compact UTF-8, no trailing newline."""
+    return json.dumps(
+        data,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def store_tree(pygit_dir: Path, entries: list[dict]) -> str:
+    """
+    Store one directory.
+
+    Each entry: {"name": "file.txt", "oid": "...", "type": "blob"}
+    or: {"name": "src", "oid": "...", "type": "tree"}
+    """
+    tree = {
+        "entries": sorted(
+            entries,
+            key=lambda entry: entry["name"].encode("utf-8"),
+        ),
+        "version": 1,
+    }
+    return write_object(pygit_dir, "tree", _encode_json(tree))
+
+
+def read_tree(pygit_dir: Path, oid: str) -> dict:
+    """Read one directory tree."""
+    object_type, content = read_object(pygit_dir, oid)
+
+    if object_type != "tree":
+        raise errors.PyGitError(2, "E_INVALID_OBJECT_TYPE", f"Expected tree, found {object_type}")
+
+    try:
+        return json.loads(content.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise errors.PyGitError(3, "E_CORRUPT", f"Invalid tree payload: {oid}") from exc
+
+
+def store_commit(pygit_dir: Path, tree: str, parents: list[str], author: str, message: str, timestamp: int) -> str:
+    """Store a commit pointing to a root tree and its parent commits."""
+    commit_data = {
+        "author": author,
+        "message": message,
+        "parents": parents,
+        "timestamp": timestamp,
+        "tree": tree,
+        "version": 1,
+    }
+    return write_object(pygit_dir, "commit", _encode_json(commit_data))
+
+
+def read_commit(pygit_dir: Path, oid: str) -> dict:
+    """Read a commit's metadata."""
+    object_type, content = read_object(pygit_dir, oid)
+
+    if object_type != "commit":
+        raise errors.PyGitError(2, "E_INVALID_OBJECT_TYPE", f"Expected commit, found {object_type}")
+
+    try:
+        return json.loads(content.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise errors.PyGitError(3, "E_CORRUPT", f"Invalid commit payload: {oid}") from exc

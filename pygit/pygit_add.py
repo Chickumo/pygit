@@ -1,6 +1,4 @@
-from . import index
-from . import objects
-from . import errors
+from . import index, objects, errors
 from concurrent.futures import ThreadPoolExecutor
 from pygit.repository import to_repo_relative, find_repo
 from pathlib import Path

@@ -1,9 +1,9 @@
 import argparse
 import sys
-from . import init
-from . import status
+from pygit.init import init
+from pygit.status import status
 from . import errors
-from . import pygit_add
+from pygit.pygit_add import add
 from pathlib import Path
 
 def main():
@@ -21,12 +21,12 @@ def main():
 
     #PARSER FOR STATUS COMMAND
     status_parser = subparsers.add_parser("status", help="Show the status of the repository")
-    status_parser.set_defaults(func=status.status)
+    status_parser.set_defaults(func=status)
 
     #PARSER FOR ADD COMMAND
     add_parser = subparsers.add_parser("add", help="Add files to the staging area")
     add_parser.add_argument("paths", nargs="+")
-    add_parser.set_defaults(func=pygit_add.add)
+    add_parser.set_defaults(func=add)
 
     #PARSER FOR UNSTAGE COMMAND
     unstage_parser = subparsers.add_parser("unstage", help="Unstage files from the staging area")
@@ -43,7 +43,7 @@ def main():
     #PARSER FOR INIT COMMAND
     init_parser = subparsers.add_parser("init", help="Initialize a new repository in the specified directory [Default: pwd]")
     init_parser.add_argument("directory", nargs="?", type=Path, default=Path("."))
-    init_parser.set_defaults(func=init.init)
+    init_parser.set_defaults(func=init)
 
     args = parser.parse_args()
     try:
@@ -55,12 +55,6 @@ def main():
             file=sys.stderr
         )
         return exc.code
-
-def add(args):
-    """Add files to the staging area."""
-    for path in args.paths:
-        print(f"Staging: {path}")
-    pass
 
 def unstage(args):
     """Unstage files from the staging area."""
